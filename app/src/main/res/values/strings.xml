@@ -10,11 +10,18 @@
     <string name="signup_new_account">No account yet? Create one</string>
 
     <!-- Signup Activity -->
+    <string name="already_a_member_login">Already a member? Login</string>
+    <string name="create_account">Create Account</string>
+    <string name="re_enter_password_hint">Re-enter Password</string>
+    <string name="password_hint">Password</string>
+    <string name="email_hint">Email</string>
+    <string name="name_hint">Name</string>
 
     <!-- Main Activity -->
 
 
     <!-- Menu Main -->
     <string name="action_settings">Settings</string>
+
 
 </resources>

@@ -49,8 +49,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Start the Signup activity
-//                Intent intent = new Intent(getApplicationContext(), SignupActivity.class);
-//                startActivityForResult(intent, REQUEST_SIGNUP);
+                Intent intent = new Intent(getApplicationContext(), SignupActivity.class);
+                startActivityForResult(intent, REQUEST_SIGNUP);
             }
         });
     }
@@ -64,6 +64,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // Evitar pulsar boton más de una vez mientras se valida el login.
+        // Desactivar botón para evitar pulsar más de una vez mientras se valida el login.
         _loginButton.setEnabled(false);
 
         final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
@@ -76,6 +77,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = _passwordText.getText().toString();
 
         // TODO: Implement your own authentication logic here.
+        // TODO: Implement authentication logic here.
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
