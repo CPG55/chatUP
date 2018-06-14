@@ -3,16 +3,16 @@ package dam.cpg.chatup.modelo;
 /**
  * Clase que define un usuario de la aplicación.
  *
- * @author Carlos Pérez on 12/06/18. *
+ * @author Carlos Pérez on 12/06/18.
  */
 public class User {
 
     private String name;
     private String email;
+    private String profilePictureURL;
 
-    public User(String name, String email) {
-        this.name = name;
-        this.email = email;
+    public User() {
+
     }
 
     public String getName() {
@@ -30,4 +30,9 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public String getProfilePictureURL() { return profilePictureURL; }
+
+    public void setProfilePictureURL(String profilePictureURL) { this.profilePictureURL = profilePictureURL; }
+
 }

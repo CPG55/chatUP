@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.toolbar)
@@ -61,10 +63,24 @@ public class MainActivity extends AppCompatActivity {
 
                 return true;
 
+            case R.id.action_logout:
+
+                FirebaseAuth.getInstance().signOut();
+                returnLogin();
+                Log.i("ActionBar", "Logout!");
+
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
 
 
     }
+
+
+    private void returnLogin() {
+        startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        finish();
+    }
+
 }

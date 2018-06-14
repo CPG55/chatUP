@@ -26,9 +26,9 @@ import dam.cpg.chatup.R;
 import dam.cpg.chatup.modelo.User;
 
 /**
- * En esta clase se registraran nuevos usuarios en Firebase.
- * Se utiliza Firebase Authentication para el usuario y password.
- * Se crea un nodo de usuarios en la base de datos.
+ * Clase de registro de nuevos usuarios.
+ * Se registraran nuevos usuarios en Firebase Authentication con email y password.
+ * Se creará un nuevo usuario en la base de datos por cada usuario registrado con nombre y email.
  *
  * @author Carlos Pérez on 11/06/18.
  */
@@ -39,18 +39,12 @@ public class SignupActivity extends AppCompatActivity {
     private FirebaseDatabase myFirebaseDatabase;
     private boolean signUpCompleted;
 
-    @BindView(R.id.input_name)
-    EditText _nameText;
-    @BindView(R.id.input_email)
-    EditText _emailText;
-    @BindView(R.id.input_password)
-    EditText _passwordText;
-    @BindView(R.id.input_reEnterPassword)
-    EditText _reEnterPasswordText;
-    @BindView(R.id.btn_signup)
-    Button _signupButton;
-    @BindView(R.id.link_login)
-    TextView _loginLink;
+    @BindView(R.id.input_name)  EditText _nameText;
+    @BindView(R.id.input_email) EditText _emailText;
+    @BindView(R.id.input_password) EditText _passwordText;
+    @BindView(R.id.input_reEnterPassword) EditText _reEnterPasswordText;
+    @BindView(R.id.btn_signup) Button _signupButton;
+    @BindView(R.id.link_login) TextView _loginLink;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -87,50 +81,58 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     /**
-     * Método que procesa el intento de registro. Utiliza Firebase Authentication y Database.
+     * Método que procesa el intento de registro. Utiliza Firebase Authentication y Firebase Database.
+     * Se intenta registrar un usuario en Firebase Authentication con email y password.
+     * Si el intento de crear el usuario en Authentication funciona, entonces se intentará
+     * registrar el mismo usuario en la base de datos con el mismo UID, name, email.
+     * Esto permite no exponer las contraseñas en la base de datos.
      */
     public void signup() {
         Log.d(TAG, "Signup");
 
-        // Si las validaciones fallan lo comunica al usuario y retorna el proceso.
+        // Si los datos introducidos no son validos retornamos el proceso.
+        // En caso contrario se procede a registrar en Firebase.
         if (!validate()) {
             onSignupFailed();
             return;
         }
 
-        // En caso de no fallar la validación continua el flujo.
-        // Desactiva botón de registro mientras se crea la cuenta.
+        // Desactiva botón de registro mientras se crea la cuenta para evitar pulsar más de una vez.
         _signupButton.setEnabled(false);
 
-        // Simulacion gráfica con un dialog animado mientras se crea la cuenta.
+        // Representación gráfica de espera mientras se registra la cuenta.
         final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this,
                 R.style.AppTheme_Dark_Dialog);
         progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Creating Account...");
+        progressDialog.setMessage(getString(R.string.signup_creating_account));
         progressDialog.show();
 
         // Recogida de los datos introducidos.
         final String name = _nameText.getText().toString();
         final String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
-        //String reEnterPassword = _reEnterPasswordText.getText().toString();
 
         // TODO: Implement signup logic here.
-        // Si el intento de crear una cuenta de usuario con email y password en Authentication funciona
-        // Entonces se intentará registrar el usuario como usuario en la base de datos también.
-        // Esto va a permitir no tener las contraseñas en la base de datos.
+        // Si hemos llegado aqui procedemos a crear la cuenta en Firebase Authentication.
         myAuthentication.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(SignupActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
-
+                        // Logs para controlar resultados.
+                        if (!task.isSuccessful()) {
+                            Log.d(TAG, "onComplete: Failed=" + task.getException().getMessage());
+                        } else {
+                            Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
+                        }
+                        // Si el registro en Auth tuvo exito hay que añadir el usuario a la BD.
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Toast.makeText(SignupActivity.this, "Se registro correctamente.", Toast.LENGTH_SHORT).show();
-                            User user = new User(email, name);
-                            // Recuperamos el UID del usuario autenticado para hacerlo coincidir con la referencia en la BD.
+
+                            User user = new User();
+                            user.setName(name);
+                            user.setEmail(email);
+                            // Recuperar UID del usuario autenticado para hacerlo coincidir con el usuario en la BD.
                             FirebaseUser currentUser = myAuthentication.getCurrentUser();
+                            // Esta linea también crea el nodo si no existe en la BD.
                             DatabaseReference reference = myFirebaseDatabase.getReference("Users/" + currentUser.getUid());
                             // Ahora el usuario autenticado y el de la BD, tendran la misma referencia (clave).
                             reference.setValue(user);
@@ -145,11 +147,11 @@ public class SignupActivity extends AppCompatActivity {
                     }
                 });
 
-        // Llamada a métodos de éxito o fallo y finalización de diálogo de progreso.
+        // Llamada a métodos de éxito o fallo y finalización de diálogo de progreso. Sirve para sincronizar el interfaz.
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
-                        // On complete call either onSignupSuccess or onSignupFailed depending on success
+
                         if (signUpCompleted) {
                             onSignupSuccess();
                         } else {
@@ -165,25 +167,28 @@ public class SignupActivity extends AppCompatActivity {
      * Este método representa un registro exitoso.
      */
     public void onSignupSuccess() {
+        Toast.makeText(SignupActivity.this, getString(R.string.signup_account_successful), Toast.LENGTH_SHORT).show();
         _signupButton.setEnabled(true);
+        // Devolver código de éxito al intent que inició la actividad.
         setResult(RESULT_OK, null);
         // Finalizar actividad.
         finish();
     }
 
     /**
-     * Este método avisa de un registro fallido.
+     * Este método representa un registro fallido.
      */
     public void onSignupFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
-        // Activar botón de nuevo para intentar otro login.
+        Toast.makeText(getBaseContext(), getString(R.string.signup_account_failed), Toast.LENGTH_LONG).show();
+        // Activar botón de nuevo para intentar otro registro.
         _signupButton.setEnabled(true);
     }
 
     /**
-     * Método de validación de datos introducidos.
+     * Método de validación de datos introducidos por el usuario.
+     * Campos: name , email , password , reEnterPassword.
      *
-     * @return valid
+     * @return Devuelve true en caso de ser válidos, false en caso contrario.
      */
     public boolean validate() {
         boolean valid = true;
@@ -194,28 +199,28 @@ public class SignupActivity extends AppCompatActivity {
         String reEnterPassword = _reEnterPasswordText.getText().toString();
 
         if (name.isEmpty() || name.length() < 3) {
-            _nameText.setError("at least 3 characters");
+            _nameText.setError(getString(R.string.signup_validate_name));
             valid = false;
         } else {
             _nameText.setError(null);
         }
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("enter a valid email address");
+            _emailText.setError(getString(R.string.signup_validate_email));
             valid = false;
         } else {
             _emailText.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("between 4 and 10 alphanumeric characters");
+            _passwordText.setError(getString(R.string.signup_validate_password));
             valid = false;
         } else {
             _passwordText.setError(null);
         }
 
         if (reEnterPassword.isEmpty() || reEnterPassword.length() < 4 || reEnterPassword.length() > 10 || !(reEnterPassword.equals(password))) {
-            _reEnterPasswordText.setError("Password Do not match");
+            _reEnterPasswordText.setError(getString(R.string.signup_validate_password_match));
             valid = false;
         } else {
             _reEnterPasswordText.setError(null);

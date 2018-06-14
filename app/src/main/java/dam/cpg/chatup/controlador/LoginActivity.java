@@ -25,6 +25,7 @@ import dam.cpg.chatup.R;
 
 /**
  * Clase de login y acceso a registro de nuevos usuarios.
+ * Para hacer login se necesita estar registrado, en login se utiliza email y password.
  *
  * @author Carlos Pérez on 7/06/18.
  */
@@ -35,15 +36,10 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth myAuthentication;
     private boolean loginCompleted;
 
-    @BindView(R.id.input_email)
-    EditText _emailText;
-    @BindView(R.id.input_password)
-    EditText _passwordText;
-    @BindView(R.id.btn_login)
-    Button _loginButton;
-    @BindView(R.id.link_signup)
-    TextView _signupLink;
-
+    @BindView(R.id.input_email) EditText _emailText;
+    @BindView(R.id.input_password) EditText _passwordText;
+    @BindView(R.id.btn_login) Button _loginButton;
+    @BindView(R.id.link_signup) TextView _signupLink;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -97,7 +93,7 @@ public class LoginActivity extends AppCompatActivity {
         final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
                 R.style.AppTheme_Dark_Dialog);
         progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Authenticating...");
+        progressDialog.setMessage(getString(R.string.login_account));
         progressDialog.show();
 
         String email = _emailText.getText().toString();
@@ -111,10 +107,8 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Toast.makeText(LoginActivity.this, "Login correcto.", Toast.LENGTH_SHORT).show();
 
-                            // Flag de registro completado con éxito.
+                            // Flag de login completado con éxito.
                             loginCompleted = true;
 
                         } else {
@@ -125,11 +119,11 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
 
-        // Llamada a métodos de éxito o fallo y finalización de diálogo de progreso.
+        // Llamada a métodos de éxito o fallo y finalización de diálogo de progreso. Sirve para sincronizar el interfaz.
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
-                        // On complete call either onLoginSuccess or onLoginFailed
+
                         if (loginCompleted) {
                             onLoginSuccess();
                         } else {
@@ -141,6 +135,14 @@ public class LoginActivity extends AppCompatActivity {
                 }, 3000);
     }
 
+    /**
+     * Recogida del resultado del intent de la actividad de registro. Si es positivo se finaliza la actividad.
+     * Representa que el registro es válido y pasa a la actividad principal sin rellenar login.
+     *
+     * @param requestCode ...
+     * @param resultCode  ...
+     * @param data        ...
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_SIGNUP) {
@@ -153,13 +155,21 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Es importante sobreescribir este método para evitar saltar la pantalla de login.
+     * MainActivity es la actividad "launcher", por lo tanto existe debajo de Login.
+     */
     @Override
     public void onBackPressed() {
-        // Desactivar la posibilidad de volver atrás a la MainActivity hasta que haya login.
+        // Desactivar la posibilidad de volver a MainActivity (launcher activity).
         moveTaskToBack(true);
     }
 
+    /**
+     * Este método representa un registro exitoso. Lanza el intent a MainActivity y finaliza la actividad de login.
+     */
     public void onLoginSuccess() {
+        Toast.makeText(LoginActivity.this, getString(R.string.login_account_successful), Toast.LENGTH_SHORT).show();
         // Recuperar estado de botón de login.
         _loginButton.setEnabled(true);
         // Iniciar siguiente activity.
@@ -168,14 +178,23 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Este método representa un login fallido.
+     */
     public void onLoginFailed() {
-        // Sign fails, display a message to the user.
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
+        // Login fails, display a message to the user.
+        Toast.makeText(getBaseContext(), getString(R.string.login_account_failed), Toast.LENGTH_LONG).show();
 
         // Recuperar estado de botón de login.
         _loginButton.setEnabled(true);
     }
 
+    /**
+     * Método de validación de datos introducidos por el usuario.
+     * Campos: email , password.
+     *
+     * @return Devuelve true en caso de ser válidos, false en caso contrario
+     */
     public boolean validate() {
         boolean valid = true;
 
@@ -183,14 +202,14 @@ public class LoginActivity extends AppCompatActivity {
         String password = _passwordText.getText().toString();
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("enter a valid email address");
+            _emailText.setError(getString(R.string.login_validate_email));
             valid = false;
         } else {
             _emailText.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("between 4 and 10 alphanumeric characters");
+            _passwordText.setError(getString(R.string.login_validate_password));
             valid = false;
         } else {
             _passwordText.setError(null);
@@ -200,20 +219,24 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /**
-     * Para controlar el ciclo de vida de la actividad, en caso de que la actividad vuelva
-     * a primer plano. Hay que comprobar si existe un usuario autenticado para cargar la
-     * actividad principal, si no existe hará su curso normal a "onCreate" en esta actividad.
+     * Para controlar el ciclo de vida de la actividad en caso de que la actividad vuelva
+     * a primer plano, si hay un login de usuario activo, carga la actividad principal (MainActivity)
+     * , si no, continua el curso normal a "onCreate" en LoginActity.
      */
     @Override
     protected void onResume() {
         super.onResume();
         FirebaseUser currentUser = myAuthentication.getCurrentUser();
         if (currentUser != null) {
-            Toast.makeText(this, "Usuario logeado.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "User login!", Toast.LENGTH_SHORT).show();
             nextActivity();
         }
     }
 
+    /**
+     * Lanza intent a MainActivity y finaliza la actividad de Login.
+     * Representa que el proceso de login ha finalizado con éxito en su totalidad.
+     */
     private void nextActivity() {
         startActivity(new Intent(LoginActivity.this, MainActivity.class));
         finish();
