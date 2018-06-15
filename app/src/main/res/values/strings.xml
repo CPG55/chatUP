@@ -41,7 +41,7 @@
     <!-- Menu Main -->
     <string name="action_settings">Settings</string>
     <string name="action_search_user">Search User</string>
-    <string name="action_logout_user">Search User</string>
+    <string name="action_logout_user">Logout User</string>
 
     <!-- Time Ago Utilidades -->
     <string name="time_ago_prefix" translatable="false"></string>
@@ -57,7 +57,7 @@
     <string name="time_ago_months">%d months</string>
     <string name="time_ago_year">about a year</string>
     <string name="time_ago_years">%d years</string>
-
+    <string name="user_name" />
 
 
 </resources>
