@@ -48,10 +48,8 @@ public class ContactsActivity extends AppCompatActivity {
     private FirebaseDatabase myFirebaseDatabase;
     private DatabaseReference myDatabaseReference;
 
-    @BindView(R.id.toolbar_contacts)
-    Toolbar topToolBar;
-    @BindView(R.id.recyclerView_contacts)
-    RecyclerView myUsersRVList;
+    @BindView(R.id.toolbar_contacts) Toolbar topToolBar;
+    @BindView(R.id.recyclerView_contacts) RecyclerView myUsersRVList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,21 +82,12 @@ public class ContactsActivity extends AppCompatActivity {
         myUsersRVList.setLayoutManager(linearLayoutManager);
         myUsersRVList.setAdapter(usersAdapter);
 
-
         // Recuperar datos para la lista de usuarios.
         // usersList = getUsersList();
 
-//        User user = new User ();
-//        user.setName("Carlos");
-//        User user2 = new User ();
-//        user.setName("Dorian");
-//
-//        usersAdapter.addUser(user);
-//        usersAdapter.addUser(user2);
-
         // Referencia de la base de datos al nodo de usuarios.
         myDatabaseReference = FirebaseDatabase.getInstance().getReference("Users");
-//        myDatabaseReference = FirebaseDatabase.getInstance().getReference("Groups/group_UID/messages");
+//      myDatabaseReference = FirebaseDatabase.getInstance().getReference("Groups/group_UID/messages");
 
         myDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -197,6 +186,8 @@ public class ContactsActivity extends AppCompatActivity {
 
             case R.id.action_search:
 
+                Intent intent = new Intent(ContactsActivity.this, ChatActivity.class);
+                startActivity(intent);
                 Log.i("ActionBar", "Buscar!");
 
                 return true;

@@ -23,7 +23,7 @@ class GroupHolder extends RecyclerView.ViewHolder {
     GroupHolder(View itemView) {
         super(itemView);
 
-        ButterKnife.bind(itemView);
+        ButterKnife.bind(this , itemView);
 
     }
 
