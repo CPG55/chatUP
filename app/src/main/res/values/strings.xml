@@ -57,7 +57,12 @@
     <string name="time_ago_months">%d months</string>
     <string name="time_ago_year">about a year</string>
     <string name="time_ago_years">%d years</string>
+
+    <!-- Chat Activity -->
+
     <string name="user_name" />
+    <string name="chat_btn_send">Send</string>
+    <string name="chat_write_a_message_hint">Write a message ...</string>
 
 
 </resources>
