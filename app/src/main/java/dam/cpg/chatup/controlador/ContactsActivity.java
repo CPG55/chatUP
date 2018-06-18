@@ -2,6 +2,7 @@ package dam.cpg.chatup.controlador;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -10,9 +11,15 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.firebase.FirebaseError;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +36,7 @@ import dam.cpg.chatup.vista.UsersAdapter;
  */
 public class ContactsActivity extends AppCompatActivity {
 
+    private static final String TAG = "ContactsActivity";
     private List<User> usersList;
     private UsersAdapter usersAdapter;
     private LinearLayoutManager linearLayoutManager;
@@ -38,9 +46,12 @@ public class ContactsActivity extends AppCompatActivity {
 
     private FirebaseAuth myAuthentication;
     private FirebaseDatabase myFirebaseDatabase;
+    private DatabaseReference myDatabaseReference;
 
-    @BindView(R.id.toolbar_contacts) Toolbar topToolBar;
-    @BindView(R.id.recyclerView_contacts) RecyclerView myUsersRVList;
+    @BindView(R.id.toolbar_contacts)
+    Toolbar topToolBar;
+    @BindView(R.id.recyclerView_contacts)
+    RecyclerView myUsersRVList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,17 +69,107 @@ public class ContactsActivity extends AppCompatActivity {
         FirebaseUser currentUser = myAuthentication.getCurrentUser();
         if (currentUser != null) {
             myUserUID = currentUser.getUid();
+        } else {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
         }
 
-        // Recuperar datos para la lista de usuarios.
-        usersList = getUsersList();
+        //usersList = new ArrayList<>();
 
         // Montar el RecyclerView.
-        usersAdapter = new UsersAdapter(this, usersList);
+        //usersAdapter = new UsersAdapter(this, usersList);
+        usersAdapter = new UsersAdapter(this);
         linearLayoutManager = new LinearLayoutManager(this);
 
         myUsersRVList.setLayoutManager(linearLayoutManager);
         myUsersRVList.setAdapter(usersAdapter);
+
+
+        // Recuperar datos para la lista de usuarios.
+        // usersList = getUsersList();
+
+//        User user = new User ();
+//        user.setName("Carlos");
+//        User user2 = new User ();
+//        user.setName("Dorian");
+//
+//        usersAdapter.addUser(user);
+//        usersAdapter.addUser(user2);
+
+        // Referencia de la base de datos al nodo de usuarios.
+        myDatabaseReference = FirebaseDatabase.getInstance().getReference("Users");
+//        myDatabaseReference = FirebaseDatabase.getInstance().getReference("Groups/group_UID/messages");
+
+        myDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                myDatabaseReference.removeEventListener(this);
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+
+        });
+
+        // Añadir escuchador que va a devolver los datos de usuario.
+        myDatabaseReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
+
+                User user = dataSnapshot.getValue(User.class);
+                user.setProfilePictureURL(dataSnapshot.getKey());
+                usersAdapter.addUser(user);
+                usersAdapter.notifyDataSetChanged();
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+        // Click largo en usuarios.
+//        myUsersRVList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView,
+//                                    View view, int position, long rowId) {
+//
+//                // Generate a message based on the position
+//                String message = "You clicked on " + cheeses[position];
+//
+//                // Use the message to create a Snackbar
+//                Snackbar.make(adapterView, message, Snackbar.LENGTH_LONG)
+//                        .show(); // Show the Snackbar
+//            }
+//        });
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
 
 
     }
@@ -116,19 +217,7 @@ public class ContactsActivity extends AppCompatActivity {
 
     private List<User> getUsersList() {
 
-        List<User> fetchedUsers = new ArrayList<>();
-
-        // Query Firebase para el usuario.
-//        new Firebase('https://example-data-sql.firebaseio.com/user/1').once('value', function(snap) {
-//            console.log('I fetched a user!', snap.val());
-//        });
-
-        // 1 Recuperar UID de mi usuario. DONE
-        // 2 Con el UID de mi usuario, tengo acceso a la lista de grupos a los que pertenezco.
-        // 3 Con la lista de grupos, tengo el UID de cada grupo, puedo recuperar una lista de UIDS de usuarios
-        // de esos grupos, cada UID de usuario se asocia a un UID de grupo. (Mapa?).
-        // 4 Relleno una lista de objetos Group con esos datos, y listo ! (easy).
-
+        final List<User> fetchedUsers = new ArrayList<>();
 
         return fetchedUsers;
     }
@@ -139,20 +228,7 @@ public class ContactsActivity extends AppCompatActivity {
     }
 
     private void getProfilePicture() {
-
-//        //Uri u = group.getData(); Aqui se recupera la cadena del usuario.
-//        storageReference = storage.getReference("profile_pictures");//imagenes de perfil
-//        final StorageReference fotoReferencia = storageReference.child(u.getLastPathSegment());
-//        fotoReferencia.putFile(u).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//            @Override
-//            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                Uri u = taskSnapshot.getDownloadUrl();
-//                fotoPerfilCadena = u.toString();
-//                //MensajeEnviar m = new MensajeEnviar(NOMBRE_USUARIO+" ha actualizado su foto de perfil",u.toString(),NOMBRE_USUARIO,fotoPerfilCadena,"2",ServerValue.TIMESTAMP);
-//                //databaseReference.push().setValue(m);
-//                Glide.with(MainActivity.this).load(u.toString()).into(fotoPerfil);
-//            }
-//        });
+        //TODO
 
 
     }

@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import dam.cpg.chatup.R;
@@ -18,12 +19,22 @@ import dam.cpg.chatup.modelo.User;
  */
 public class UsersAdapter extends RecyclerView.Adapter<UserHolder> {
 
-    private List<User> userList;
+    private List<User> usersList = new ArrayList<>();
     private Context context;
 
-    public UsersAdapter(Context context, List<User> userList) {
-        this.userList = userList;
+//    public UsersAdapter(Context context, List<User> userList) {
+//        this.userList = userList;
+//        this.context = context;
+//    }
+
+    public UsersAdapter(Context context) {
         this.context = context;
+    }
+
+
+    public void addUser(User user) {
+        usersList.add(user);
+        notifyItemInserted(usersList.size());
     }
 
     /**
@@ -51,9 +62,8 @@ public class UsersAdapter extends RecyclerView.Adapter<UserHolder> {
     public UserHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
         View layoutView = LayoutInflater.from(parent.getContext()).inflate(R.layout.user_item, null);
-        UserHolder rcv = new UserHolder(layoutView);
 
-        return rcv;
+        return new UserHolder(layoutView);
     }
 
     /**
@@ -78,8 +88,18 @@ public class UsersAdapter extends RecyclerView.Adapter<UserHolder> {
      */
     @Override
     public void onBindViewHolder(@NonNull UserHolder holder, int position) {
-        holder._userName.setText(userList.get(position).getName());
-//        holder.personPhoto.setImageResource(itemList.get(position).getPhotoId());
+        holder._userName.setText(usersList.get(position).getName());
+        //holder._userProfilePicture.setImageResource(usersList.get(position).getProfilePictureURL());
+//        holder.itemView.setOnClickListener(new View.OnClickListener(usersList.get(position).getName()) {
+//            public View.OnClickListener(String userId)  {
+//
+//            }
+//
+//            @Override
+//            public void onClick(View v) {
+//                usersList.get(position).getProfilePictureURL();
+//            }
+//        });
     }
 
     /**
@@ -89,7 +109,7 @@ public class UsersAdapter extends RecyclerView.Adapter<UserHolder> {
      */
     @Override
     public int getItemCount() {
-        return this.userList.size();
+        return usersList.size();
     }
 
 }

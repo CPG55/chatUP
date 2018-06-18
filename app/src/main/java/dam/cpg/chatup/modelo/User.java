@@ -1,18 +1,30 @@
 package dam.cpg.chatup.modelo;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
 /**
  * Clase que define un usuario de la aplicación.
  *
  * @author Carlos Pérez on 12/06/18.
  */
+@IgnoreExtraProperties
 public class User {
 
+    private String userUID;
     private String name;
     private String email;
     private String profilePictureURL;
 
     public User() {
 
+    }
+
+    public String getUserUID() {
+        return userUID;
+    }
+
+    public void setUserUID(String userUID) {
+        this.userUID = userUID;
     }
 
     public String getName() {

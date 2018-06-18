@@ -16,8 +16,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
  */
 class GroupHolder extends RecyclerView.ViewHolder {
 
-    @BindView(R.id.user_name) TextView _userName;
-    @BindView(R.id.user_profile_picture) CircleImageView _userProfilePicture;
+    @BindView(R.id.group_user_name) TextView _userName;
+    @BindView(R.id.group_user_profile_picture) CircleImageView _userProfilePicture;
     //@BindView(R.id.user_last_message) TextView _userLastMessage;
 
     GroupHolder(View itemView) {
